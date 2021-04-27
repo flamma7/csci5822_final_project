@@ -1,5 +1,7 @@
 
-
+"""
+These are probably not needed but they are the values each parameter can take on.
+"""
 nCars = [3, 4, 5]
 nDiffLoads = [1, 2, 3, 4]
 cNumWheels = [2, 3]
@@ -12,6 +14,9 @@ direction = ['east', 'west']
 
 
 class Train_w_car_vects:
+    """
+    A train object is just a single dictionary called data.
+    """
     def __init__(self):
         self.data = {'nCars': 0,
                      'nDiffLoads': 0,
@@ -25,6 +30,13 @@ class Train_w_car_vects:
 
 
 def make_vec(data):
+    """
+    Create a single train object from data. Cars are stored as vectors of length 5, one element per car. Note if the
+    train has less than 5 cars the vector will have zeros in place of the non-existent cars.
+
+    :param data:    Some train dataset for a single train.
+    :return:        A train object.
+    """
     t = Train_w_car_vects()
     d = data.rstrip().split()
 
@@ -39,7 +51,8 @@ def make_vec(data):
         t.data['cNumLoads'][i] = d[idx+i+3] if d[idx+i+3] is not '-' else 0
         t.data['cLoadShape'][i] = d[idx+i+4] if d[idx+i+4] is not '-' else 0
         idx += 4
-
+    #t.data['cLength'] = [x for x in t.data['cLength'] if x != 0]
+    #t.data['cLength'] = set(t.data['cLength'])
     t.data['adjLoads'] = [d[22], d[23], d[24], d[25], d[26], d[27], d[28], d[29], d[30], d[31]]
     t.data['direction'] = d[32]
     return t
@@ -92,9 +105,14 @@ def prob_cLength(data):
         _cLength.append(tuple(train.data['cLength']))
     _cLength = list(set(_cLength))
 
+    p_out = {}
+
     for i in _cLength:
         p = prob_x('cLength', list(i), data)
-        print("p(cLength={})={}".format(list(i), p))
+        if p > 0:
+            p_out["p(cLength={})".format(list(i))] = p
+        #print("p(cLength={})={}".format(list(i), p))
+    return p_out
 
 
 def prob_cLoadShape(data):
@@ -106,9 +124,14 @@ def prob_cLoadShape(data):
         _cLoadShape.append(tuple(train.data['cLoadShape']))
     _cLoadShape = list(set(_cLoadShape))
 
+    p_out = {}
+
     for i in _cLoadShape:
         p = prob_x('cLoadShape', list(i), data)
-        print("p(cLoadShape={})={}".format(list(i), p))
+        if p > 0:
+            p_out["p(cLoadShape={})".format(list(i))] = p
+        #print("p(cLoadShape={})={}".format(list(i), p))
+    return p_out
 
 
 def prob_nCars(data):
@@ -120,9 +143,14 @@ def prob_nCars(data):
         _nCars.append(train.data['nCars'])
     _nCars = list(set(_nCars))
 
+    p_out = {}
+
     for i in _nCars:
         p = prob_x('nCars', str(i), data)
-        print("p(nCars={})={}".format(i, p))
+        if p > 0:
+            p_out["p(nCars={})".format(i)] = p
+        #print("p(nCars={})={}".format(i, p))
+    return p_out
 
 
 def prob_nDiffLoads_given_nCars(data):
@@ -140,10 +168,15 @@ def prob_nDiffLoads_given_nCars(data):
         _nCars.append(train.data['nCars'])
     _nCars = list(set(_nCars))
 
+    p_out = {}
+
     for i in _nDiffLoads:
         for j in _nCars:
             p = prob_x_given_y('nDiffLoads', str(i), {'nCars':str(j)}, data)
-            print("p(nDiffLoads={} | nCars={})={}".format(i, j, p))
+            if p > 0:
+                p_out["p(nDiffLoads={} | nCars={})".format(i, j)] = p
+            #print("p(nDiffLoads={} | nCars={})={}".format(i, j, p))
+    return p_out
 
 
 def prob_cShape_given_cLoadShape_AND_nDiffLoads(data):
@@ -165,11 +198,16 @@ def prob_cShape_given_cLoadShape_AND_nDiffLoads(data):
         _cShape.append(tuple(train.data['cShape']))
     _cShape = list(set(_cShape))
 
+    p_out = {}
+
     for i in _cShape:
         for j in _nDiffLoads:
             for k in _cLoadShape:
                 p = prob_x_given_y('cShape', list(i), {'nDiffLoads':str(j), 'cLoadShape':list(k)}, data)
-                print("p(cShape={} | nDiffLoads={}, cLoadShape={})={}".format(i, j, k, p))
+                if p > 0:
+                    p_out["p(cShape={} | nDiffLoads={}, cLoadShape={})".format(i, j, k)] = p
+                #print("p(cShape={} | nDiffLoads={}, cLoadShape={})={}".format(i, j, k, p))
+    return p_out
 
 
 def prob_cNumWheels_given_cLength(data):
@@ -186,15 +224,19 @@ def prob_cNumWheels_given_cLength(data):
         _cNumWheels.append(tuple(train.data['cNumWheels']))
     _cNumWheels = list(set(_cNumWheels))
 
+    p_out = {}
+
     for i in _cNumWheels:
         for j in _cLength:
             p = prob_x_given_y('cNumWheels', list(i), {'cLength':list(j)}, data)
-            print("p(cNumWheels={} | cLength={}, )={}".format(i, j, p))
+            if p > 0:
+                p_out["p(cNumWheels={} | cLength={})".format(i, j)] = p
+            #print("p(cNumWheels={} | cLength={})={}".format(i, j, p))
+    return p_out
 
 
 def prob_cNumLoads_given_cLength_AND_cNumWheels(data):
     """
-
     :return: p(cNumLoads | length, cNumWheels)
     """
     _cLength = []
@@ -212,11 +254,16 @@ def prob_cNumLoads_given_cLength_AND_cNumWheels(data):
         _cNumLoads.append(tuple(train.data['cNumLoads']))
     _cNumLoads = list(set(_cNumLoads))
 
+    p_out = {}
+
     for i in _cNumLoads:
         for j in _cLength:
             for k in _cNumWheels:
                 p = prob_x_given_y('cNumLoads', list(i), {'cLength': list(j), 'cNumWheels': list(k)}, data)
-                print("p(cNumLoads={} | cLength={}, cNumWheels={})={}".format(i, j, k, p))
+                if p > 0:
+                    p_out["p(cNumLoads={} | cLength={}, cNumWheels={})".format(i, j, k)] = p
+                #print("p(cNumLoads={} | cLength={}, cNumWheels={})={}".format(i, j, k, p))
+    return p_out
 
 
 def prob_adjLoads_given_nDiffLoads_AND_cNumLoads(data):
@@ -238,16 +285,20 @@ def prob_adjLoads_given_nDiffLoads_AND_cNumLoads(data):
         _adjLoads.append(tuple(train.data['adjLoads']))
     _adjLoads = list(set(_adjLoads))
 
+    p_out = {}
+
     for i in _adjLoads:
         for j in _nDiffLoads:
             for k in _cNumLoads:
                 p = prob_x_given_y('adjLoads', list(i), {'nDiffLoads': list(j), 'cNumLoads': list(k)}, data)
-                print("p(adjLoads={} | nDiffLoads={}, cNumLoads={})={}".format(i, j, k, p))
+                if p > 0:
+                    p_out["p(adjLoads={} | nDiffLoads={}, cNumLoads={})".format(i, j, k)] = p
+                #print("p(adjLoads={} | nDiffLoads={}, cNumLoads={})={}".format(i, j, k, p))
+    return p_out
 
 
 def prob_dir_given_cNumLoads_AND_adjLoads_AND_cShape(data):
     """
-
     :return: p(direction | cNumLoads, adjLoads, cShape)
     """
     _cShape = []
@@ -270,30 +321,59 @@ def prob_dir_given_cNumLoads_AND_adjLoads_AND_cShape(data):
         _dir.append(train.data['direction'])
     _dir = list(set(_dir))
 
+    p_out = {}
+
     for i in _dir:
         for j in _cNumLoads:
             for k in _adjLoads:
                 for l in _cShape:
                     p = prob_x_given_y('direction', str(i), {'cNumLoads': list(j), 'adjLoads': list(k), 'cShape': list(l)}, data)
-                    print("p(direction={} | nDiffLoads={}, adjLoads={}, cShape={})={}".format(i, j, k, l, p))
+                    if p > 0:
+                        p_out["p(direction={} | nDiffLoads={}, adjLoads={}, cShape={})".format(i, j, k, l)] = p
+                    #print("p(direction={} | nDiffLoads={}, adjLoads={}, cShape={})={}".format(i, j, k, l, p))
+    return p_out
 
 
 if __name__ == "__main__":
+    """
+    Read in the trains dataset and create some train objects. Each train object has some element data which is just
+    a python dictionary. Cars are stored as vectors of length 5, so one element per car. If are car isn't present it's
+    element is just a zero.
+    """
     trains = []
     with open('data/trains-transformed.data', 'r') as f:
         for line in f.readlines():
             trains.append(make_vec(str(line)))
 
-
-    # Probabilities working
-    #prob_cLength(trains)
-    #prob_cLoadShape(trains)
-    #prob_nCars(trains)
+    """
+    Calls the the probability table functions works like this:
+        1. pass is the trains data as argument
+        2. it returns a python dictionary where key = probability statement and value = probability
+        Notes:
+            1. Probability statement access examples:
+                p_cLength['p(cLength=2)']
+                p_cNumLoads['p(cNumLoads=2 | cLength=3, cNumWheels=2)']
+            2. The probability statement used to access the dict, the given x, y, z must be in the same order as in the
+            function call which created the dictionary.
+            3. A key-value pair is present in the dictionary only if the probability is non-zero, so doing something
+            like 'p(nCars=100)' in myDict is probably good to do.
+            
+    """
+    # Probabilities
+    p_cLength = prob_cLength(trains)
+    p_cLoadShape = prob_cLoadShape(trains)
+    p_nCars = prob_nCars(trains)
 
     # Conditional probabilities
-    #prob_nDiffLoads_given_nCars(trains)
-    #prob_cShape_given_cLoadShape_AND_nDiffLoads(trains)
-    #prob_cNumWheels_given_cLength(trains)
-    #prob_cNumLoads_given_cLength_AND_cNumWheels(trains)
-    #prob_adjLoads_given_nDiffLoads_AND_cNumLoads(trains)
-    #prob_dir_given_cNumLoads_AND_adjLoads_AND_cShape(trains)
+    p_nDiffLoads = prob_nDiffLoads_given_nCars(trains)
+    p_cShape = prob_cShape_given_cLoadShape_AND_nDiffLoads(trains)
+    p_cNumWheels = prob_cNumWheels_given_cLength(trains)
+    p_cNumLoads = prob_cNumLoads_given_cLength_AND_cNumWheels(trains)
+    p_adjLoads = prob_adjLoads_given_nDiffLoads_AND_cNumLoads(trains)
+    p_dir = prob_dir_given_cNumLoads_AND_adjLoads_AND_cShape(trains)
+
+    """
+    Print out whatever probability we want.
+    """
+    for k, v, in p_nCars.items():
+        print("{}={}".format(k,v))
